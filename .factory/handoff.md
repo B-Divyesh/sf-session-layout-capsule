@@ -1,108 +1,99 @@
-# Verification 2 handoff — Session Layout Capsule
-
-## Release status
-
-**FAIL — candidate `82d3b8f95af2253a3b6cc49ec372389bcfff8e95` is live and
-byte-identical, but is not accepted.** Fresh independent QA found two P2
-contract failures: live content-hashed assets use only `max-age=30` rather than
-immutable caching, and explicit non-HTTP(S) launch URLs (for example
-`ftp://example.com`) are accepted as malformed HTTPS-looking targets instead of
-being rejected. See [verification-2.md](verification-2.md) for exact
-reproduction, evidence, and retest gates. No product code was changed during
-verification.
-
-The previously reported malformed-import P1 is repaired and was independently
-retested successfully. The remainder of this document is the builder's repair
-handoff retained for implementation history; it is superseded by the FAIL
-verdict above.
-
 # Repair handoff — Session Layout Capsule
 
 ## Release status
 
-The independent verifier's P1 import failure from candidate
-`5068f6b6df4681fbb14ac5889075b1d2f01a7b69` is repaired. The original report
-is retained in [`verification.md`](verification.md). This repair keeps the
-same static, local-first PWA artifact and the researched browser-boundary
-behavior.
+**PASS — repair commit `2acc60473d3f3932224a49ed25f98d27f53116db` is pushed to
+`main` and deployed to <https://session-layout-capsule.sociobot.in>.** It
+repairs both P2 findings in independent verification 2 without changing the
+researched local-first PWA scope or the browser/window-placement boundary.
 
 ## What changed
 
-- JSON import now deeply validates and reconstructs the export rather than
-  casting parsed JSON. Every layout and item must have the expected type,
-  required text, an ISO timestamp, and a unique ID. Link pieces require a
-  complete whitespace-free HTTP(S) address; timers require an integer duration
-  from 1 through 180 minutes. Unknown fields are discarded before IndexedDB
-  persistence.
-- QR/share payloads now use the same layout/item validation before a fresh
-  local ID is assigned or anything is saved.
-- The exact verifier payload (`url: "not a valid URL"`) now reports
-  `Layout 1, item 1 web address must be a complete http or https URL.` and
-  leaves the library unchanged. UI URL validation also replaces raw `URL`
-  constructor copy with a useful recovery message.
-- The service-worker cache version is `capsule-v1.0.2`, ensuring installed
-  clients receive the repaired application shell and its update prompt.
+- Launch-link normalization now identifies an explicitly supplied URI scheme
+  before supplying `https://` to a bare hostname. Only `http:` and `https:`
+  are accepted. `ftp:`, `mailto:`, `file:`, and `javascript:` now produce the
+  recovery message “Use an http or https link.” and are not saved. Imported
+  and QR-layout data continue to use the same validation boundary.
+- `public/staticwebapp.config.json` is now deployed with the static app. HTML
+  and `sw.js` retain `Cache-Control: public, max-age=30, must-revalidate`; Vite
+  content-hashed `assets/index-*.{js,css}` receive
+  `public, max-age=31536000, immutable`.
+- The configuration also makes the existing response policy explicit:
+  `nosniff`, strict-origin referrer policy, a local-only CSP (with `data:` only
+  for the generated QR image), and a restrictive Permissions-Policy. The
+  storage-recovery button was converted from an inline event handler to a
+  normal listener so it remains functional under that CSP.
+- Service-worker cache version is `capsule-v1.0.3`, so clients on the rejected
+  candidate receive the new shell and the existing update notification.
+- Added a real ESLint gate (`npm run lint`) for `src/` and `tests/`.
 
-## Regression coverage
+## Exact regression coverage
 
-`src/model.test.ts` covers the exact poisoned JSON, accepted/sanitized valid
-records, unsupported kinds, bad protocols, out-of-range timers, malformed and
-date-only timestamps, and poisoned QR/share intake. `tests/app.spec.ts` runs
-the exact import through the file-picker flow on desktop and 390px mobile,
-asserts its field-specific alert, no persisted poisoned capsule, and no page
-error. The offline browser test also asserts the `capsule-v1.0.2-shell` cache.
+- `src/model.test.ts`: each of `ftp://example.com`,
+  `mailto:stage@example.com`, `file:///tmp/cues.txt`, and
+  `javascript:alert(1)` is rejected both at direct normalization and at JSON
+  import; valid bare and explicit HTTP(S) links remain accepted.
+- `tests/app.spec.ts`: each unsupported scheme is submitted through the actual
+  workbench at desktop and 390px, asserts the field alert, and asserts that no
+  piece is added. The existing offline browser test now asserts the repaired
+  `capsule-v1.0.3-shell` cache.
+- `src/deployment.test.ts`: locks the short document/worker policy, immutable
+  hashed-bundle route, and CSP requirements in the source deployment config.
 
-## Verification run — 2026-08-27 UTC
+## Verification — 2026-08-27 UTC
 
 ```sh
 npm ci
 npx playwright install chromium
 npm test
+npm run lint
 npm run build
 ```
 
-- Clean install: 90 packages; `npm audit` reported 0 vulnerabilities.
-- `npm test`: 10 Vitest model tests and 8 Playwright executions passed
-  (4 browser specs on each Desktop Chrome and 390×844 mobile project).
-  This includes create/restore, axe serious/critical, the poisoned import,
-  and offline reload with persisted service-worker state.
-- `npm run build`: TypeScript check and Vite production build passed;
-  `dist/index.html` is at the deploy root. There is no lint script or
-  distributable consumer package in this static application.
-- Manual production-build Chromium checks at 1440×1000 and 390×844 passed:
-  title/lang, exactly one `h1`, one `main`, image alts, no horizontal overflow,
-  no console/page errors, first Tab reaches the skip link, Enter activates it,
-  Escape closes the dialog, and reduced-motion transition duration is 0.01 ms.
-- Lighthouse mobile on the built app: Performance 100, Accessibility 100,
-  Best Practices 100, SEO 100; FCP 1.1 s, LCP 1.5 s, TBT 0 ms, CLS 0.
-- Production payload: `index-B-v61sIi.js` 53,945 bytes and CSS 17,747 bytes
-  raw (both below the 200 KB/50 KB budgets). Hero AVIF/WebP/PNG are 21,899 /
-  39,880 / 186,469 bytes.
-- Privacy review: source and browser checks found no analytics, beacons,
-  third-party scripts, CDN fonts, or remote data endpoints. Data remains in
-  IndexedDB and the existing privacy/terms pages still describe that behavior.
+- Clean install: 169 packages added; `npm audit` reported 0 vulnerabilities.
+- `npm test`: 21 Vitest tests passed and 16 Playwright executions passed (8
+  browser specifications on each desktop Chrome and 390×844 mobile project).
+  This includes create/restore, axe serious/critical, malformed import, all
+  four unsupported-scheme paths, and offline reload.
+- `npm run lint` passed with zero warnings; `npm run build` passed TypeScript
+  and produced `dist/index.html` at the static deploy root.
+- Production bundle sizes: JS `54,146` bytes (`19,394` gzip) and CSS `17,747`
+  bytes (`4,810` gzip), under the 200 KB/50 KB raw budgets. The existing hero
+  AVIF/WebP/PNG remain 21,899 / 39,880 / 186,469 bytes.
+- Live desktop (1440px) and mobile (390px) browser smoke: first Tab reaches
+  the skip link, no horizontal overflow, no console/page errors, zero Axe
+  serious/critical findings, and no requests leave the product origin. The
+  live `ftp:` workbench path shows the expected recovery message and saves no
+  unsafe piece.
+- Offline: after the worker was ready, an offline reload opened the cached
+  live shell; the expected `capsule-v1.0.3-shell` cache was present.
+- Update: a local static-server check first served `v1.0.2`, then served this
+  `v1.0.3` worker to `registration.update()`. It displayed “A fresh version is
+  ready” with no console errors.
+- Factory `verify-url.sh` against production: HTTP 200, 909 ms load, no
+  console/page errors, title, `lang=en`, one `h1`, one `main`, zero missing
+  image alts, and zero unlabeled buttons. Its current artifacts are in
+  `.factory/evidence/`.
+- Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.9 s, LCP 1.2 s, TBT 0 ms, CLS 0.
+- Live response policy: root and `sw.js` return
+  `public, max-age=30, must-revalidate`; both deployed content-hashed bundles
+  return `public, max-age=31536000, immutable`. HSTS, referrer policy,
+  `nosniff`, CSP, and Permissions-Policy are present.
+- Live identity: SHA-256 matched every checked deployed artifact to the final
+  `dist/` output (19 files, including HTML, worker, manifest, legal routes,
+  icons, all assets, and the hashed JS/CSS bundles).
 
-## Deployment and live checks
+## Deployment
 
-Deployed with the factory static deployment configuration to
-<https://session-layout-capsule.sociobot.in>. The live document now references
-`assets/index-B-v61sIi.js`; its SHA-256 is
-`5498b0229aa0e3b67bacc4a4bf5214f1cb6f428533a38821889ce23a9ff9056f`, matching
-the built file exactly. Factory `verify-url.sh` returned HTTP 200 in 1,537 ms
-with no console/page errors, a title, `lang=en`, one `h1`, a `main` landmark,
-zero missing image alts, and zero unlabeled buttons. The exact poisoned-import
-smoke passed on live 1440px desktop and 390px mobile: the field-specific
-recovery alert appeared, no Poison capsule was persisted, and no page error
-occurred.
+Deployed the final `dist/` through the supplied Azure Static Web Apps static
+deployment configuration. The deployment completed successfully and the custom
+domain is serving the exact built artifact.
 
-Live response policy has HSTS, `Referrer-Policy: strict-origin-when-cross-origin`,
-and `X-Content-Type-Options: nosniff`. The verifier's separate P2 cache-header
-and P3 response-header observations remain deployment-layer hardening work,
-not release blockers for this repair.
+## Known product boundaries
 
-## Known boundaries
-
-- Browsers cannot arrange arbitrary desktop windows or configure external
-  hardware; Capsule intentionally remains a launch/checklist tool.
-- There is no cloud sync. Users should export JSON before clearing browser
-  storage. QR links are capped at 2,600 characters; large layouts use JSON.
+- Browsers cannot place arbitrary desktop windows or configure external MIDI
+  hardware; Capsule intentionally remains an honest launch/checklist tool.
+- There is no cloud sync. Layouts live in IndexedDB; users should export JSON
+  before clearing browser storage. QR handoffs are capped at 2,600 characters;
+  larger layouts use JSON export.

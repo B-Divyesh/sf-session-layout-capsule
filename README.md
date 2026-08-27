@@ -43,6 +43,7 @@ accessibility, mobile, and offline suite:
 ```sh
 npx playwright install chromium
 npm test
+npm run lint
 npm run build
 ```
 
