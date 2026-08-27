@@ -52,10 +52,24 @@ test('rejects a poisoned JSON import without persisting it or throwing a page er
   expect(errors).toEqual([]);
 });
 
+for (const url of ['ftp://example.com', 'mailto:stage@example.com', 'file:///tmp/cues.txt', 'javascript:alert(1)']) {
+  test(`rejects explicit unsupported launch URL ${url} in the workbench`, async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Make a capsule' }).click();
+    await page.getByLabel('Session name').fill('Protocol guard');
+    await page.getByRole('button', { name: 'Open the workbench' }).click();
+    await page.getByLabel('Label').fill('Unsafe target');
+    await page.getByLabel('Web address').fill(url);
+    await page.getByRole('button', { name: 'Add piece' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Use an http or https link.');
+    await expect(page.getByText('Unsafe target', { exact: true })).toHaveCount(0);
+  });
+}
+
 test('reopens the cached shell and local state offline', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-  await expect.poll(() => page.evaluate(() => caches.keys())).toContain('capsule-v1.0.2-shell');
+  await expect.poll(() => page.evaluate(() => caches.keys())).toContain('capsule-v1.0.3-shell');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await context.setOffline(true);

@@ -25,7 +25,11 @@ export function normalizeUrl(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
   if (/\s/.test(trimmed)) throw new Error('Enter a complete http or https web address.');
-  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const explicitScheme = /^[a-z][a-z\d+.-]*:/i.exec(trimmed)?.[0].toLowerCase();
+  if (explicitScheme && !['http:', 'https:'].includes(explicitScheme)) {
+    throw new Error('Use an http or https link.');
+  }
+  const withProtocol = explicitScheme ? trimmed : `https://${trimmed}`;
   let parsed: URL;
   try {
     parsed = new URL(withProtocol);

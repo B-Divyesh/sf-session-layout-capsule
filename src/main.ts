@@ -46,6 +46,7 @@ function shell(content: string): void {
 function bindGlobal(): void {
   root.querySelector('[data-action="home"]')?.addEventListener('click', () => goHome());
   root.querySelector('[data-action="update"]')?.addEventListener('click', () => location.reload());
+  root.querySelector('[data-action="retry"]')?.addEventListener('click', () => location.reload());
 }
 
 function showNotice(message: string): void {
@@ -401,7 +402,7 @@ async function showShare(layout: Layout): Promise<void> {
 }
 
 function renderFatal(message: string): void {
-  shell(`<section class="fatal"><p class="eyebrow">Shelf unavailable</p><h1>Your capsules could not be opened.</h1><p>${escapeHtml(message)}</p><button class="button primary" onclick="location.reload()">Try again</button><p class="muted">If private browsing blocks storage, open Capsule in a regular browser window.</p></section>`);
+  shell(`<section class="fatal"><p class="eyebrow">Shelf unavailable</p><h1>Your capsules could not be opened.</h1><p>${escapeHtml(message)}</p><button class="button primary" data-action="retry">Try again</button><p class="muted">If private browsing blocks storage, open Capsule in a regular browser window.</p></section>`);
 }
 
 async function receiveSharedCapsule(): Promise<boolean> {

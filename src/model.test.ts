@@ -14,10 +14,31 @@ describe('layout model', () => {
     expect(layout.items).toEqual([]);
   });
 
-  it('normalizes safe launch URLs and rejects non-web protocols', () => {
+  it('normalizes bare and complete HTTP(S) launch URLs', () => {
     expect(normalizeUrl('example.com/panel')).toBe('https://example.com/panel');
-    expect(() => normalizeUrl('javascript:alert(1)')).toThrow();
+    expect(normalizeUrl('HTTP://example.com/panel')).toBe('http://example.com/panel');
   });
+
+  it.each(['ftp://example.com', 'mailto:stage@example.com', 'file:///tmp/cues.txt', 'javascript:alert(1)'])(
+    'rejects explicit unsupported launch scheme %s before normalizing it',
+    (value) => {
+      expect(() => normalizeUrl(value)).toThrow('Use an http or https link.');
+    }
+  );
+
+  it.each(['ftp://example.com', 'mailto:stage@example.com', 'file:///tmp/cues.txt', 'javascript:alert(1)'])(
+    'rejects imported explicit unsupported launch scheme %s',
+    (url) => {
+      const exportValue = {
+        format: 'session-layout-capsule', version: 1, exportedAt: '2026-08-27T00:00:00.000Z', layouts: [{
+          id: 'invalid-layout', name: 'Poison capsule', description: '', createdAt: '2026-08-27T00:00:00.000Z', updatedAt: '2026-08-27T00:00:00.000Z', items: [{
+            id: 'bad-link', kind: 'link', title: 'Broken link', url, detail: '', createdAt: '2026-08-27T00:00:00.000Z'
+          }]
+        }]
+      };
+      expect(() => validateImport(exportValue)).toThrow(/Layout 1, item 1 web address must be a complete http or https URL\./);
+    }
+  );
 
   it('clamps timer durations to the supported range', () => {
     expect(createItem('timer', 'Long break', '', '', 900).duration).toBe(180);
