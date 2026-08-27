@@ -66,15 +66,21 @@ npm run build
 
 ## Deployment and live checks
 
-Before this repair was deployed, the live endpoint correctly returned HTTPS,
-HSTS, `Referrer-Policy: strict-origin-when-cross-origin`, and
-`X-Content-Type-Options: nosniff`, but its application identity was still the
-failed candidate asset `index-hvrRGofZ.js`. The release push must be followed
-by a live hash check against `dist/assets/index-B-v61sIi.js` and a repeat of
-the poisoned-import browser smoke test. The verifier's separate P2 cache-header
-and P3 response-header observations are deployment-layer hardening work, not
-release blockers for this repair; no infrastructure configuration exists in
-this repository to change them.
+Deployed with the factory static deployment configuration to
+<https://session-layout-capsule.sociobot.in>. The live document now references
+`assets/index-B-v61sIi.js`; its SHA-256 is
+`5498b0229aa0e3b67bacc4a4bf5214f1cb6f428533a38821889ce23a9ff9056f`, matching
+the built file exactly. Factory `verify-url.sh` returned HTTP 200 in 1,537 ms
+with no console/page errors, a title, `lang=en`, one `h1`, a `main` landmark,
+zero missing image alts, and zero unlabeled buttons. The exact poisoned-import
+smoke passed on live 1440px desktop and 390px mobile: the field-specific
+recovery alert appeared, no Poison capsule was persisted, and no page error
+occurred.
+
+Live response policy has HSTS, `Referrer-Policy: strict-origin-when-cross-origin`,
+and `X-Content-Type-Options: nosniff`. The verifier's separate P2 cache-header
+and P3 response-header observations remain deployment-layer hardening work,
+not release blockers for this repair.
 
 ## Known boundaries
 
