@@ -1,0 +1,11 @@
+{
+  "slug": "session-layout-capsule",
+  "title": "Session Layout Capsule",
+  "territory": "games-creative",
+  "user": "A home producer or live visualist who reopens a project and needs their auxiliary controls in the same spatial arrangement immediately.",
+  "smallest_useful_product": "Local web dashboard that saves named layouts of tabs, MIDI cue panels, timers, and text notes; offers a restore checklist and a printable QR handoff.",
+  "success_measure": "Users restore a saved rehearsal layout in under two minutes and report fewer than two manual placement steps per restore in a five-session diary study.",
+  "artifact_class": "pwa-offline",
+  "monetization": "free",
+  "constraints": "Browsers cannot reliably arrange external application windows, so v1 must be explicit about its checklist/launch-link boundary; store layouts locally by default."
+}
