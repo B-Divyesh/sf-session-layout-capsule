@@ -1,5 +1,27 @@
 # Build handoff — Session Layout Capsule
 
+## Independent QA status — FAIL (2026-08-27 UTC)
+
+Candidate `5068f6b6df4681fbb14ac5889075b1d2f01a7b69` was independently tested
+from a clean checkout and compared byte-for-byte with
+<https://session-layout-capsule.sociobot.in>. The deployment is live and
+matches the candidate, so the verdict is **FAIL**, not a deployment-only
+failure.
+
+**Blocking P1:** Import accepts a valid envelope containing an invalid item
+URL, persists it, and then throws uncaught `Failed to construct 'URL': Invalid
+URL` when the user chooses Edit. The importer must deeply validate each item
+before persistence and provide a recovery message. Full reproduction, passing
+checks, PWA evidence, header/cache observations, and retest criteria are in
+[`.factory/verification.md`](verification.md).
+
+Independent evidence: clean `npm ci`; documented Chromium installation;
+`npm test` passing (7 unit + 6 browser); `npm run build` passing; a normal
+four-piece create/restore/export/share flow; desktop and 390px checks;
+keyboard/focus/reduced-motion; zero axe serious/critical findings; offline
+reload and simulated service-worker update; Lighthouse mobile 100/100/100/100.
+Only the QA documentation changed in this verification handoff.
+
 ## Shipped
 
 Finished v1 of the local-first PWA for saving and restoring the auxiliary tools
