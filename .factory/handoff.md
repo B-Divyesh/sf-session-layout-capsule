@@ -1,3 +1,21 @@
+# Verification 2 handoff — Session Layout Capsule
+
+## Release status
+
+**FAIL — candidate `82d3b8f95af2253a3b6cc49ec372389bcfff8e95` is live and
+byte-identical, but is not accepted.** Fresh independent QA found two P2
+contract failures: live content-hashed assets use only `max-age=30` rather than
+immutable caching, and explicit non-HTTP(S) launch URLs (for example
+`ftp://example.com`) are accepted as malformed HTTPS-looking targets instead of
+being rejected. See [verification-2.md](verification-2.md) for exact
+reproduction, evidence, and retest gates. No product code was changed during
+verification.
+
+The previously reported malformed-import P1 is repaired and was independently
+retested successfully. The remainder of this document is the builder's repair
+handoff retained for implementation history; it is superseded by the FAIL
+verdict above.
+
 # Repair handoff — Session Layout Capsule
 
 ## Release status
