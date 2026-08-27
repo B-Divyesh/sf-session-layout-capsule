@@ -1,93 +1,84 @@
-# Build handoff — Session Layout Capsule
+# Repair handoff — Session Layout Capsule
 
-## Independent QA status — FAIL (2026-08-27 UTC)
+## Release status
 
-Candidate `5068f6b6df4681fbb14ac5889075b1d2f01a7b69` was independently tested
-from a clean checkout and compared byte-for-byte with
-<https://session-layout-capsule.sociobot.in>. The deployment is live and
-matches the candidate, so the verdict is **FAIL**, not a deployment-only
-failure.
+The independent verifier's P1 import failure from candidate
+`5068f6b6df4681fbb14ac5889075b1d2f01a7b69` is repaired. The original report
+is retained in [`verification.md`](verification.md). This repair keeps the
+same static, local-first PWA artifact and the researched browser-boundary
+behavior.
 
-**Blocking P1:** Import accepts a valid envelope containing an invalid item
-URL, persists it, and then throws uncaught `Failed to construct 'URL': Invalid
-URL` when the user chooses Edit. The importer must deeply validate each item
-before persistence and provide a recovery message. Full reproduction, passing
-checks, PWA evidence, header/cache observations, and retest criteria are in
-[`.factory/verification.md`](verification.md).
+## What changed
 
-Independent evidence: clean `npm ci`; documented Chromium installation;
-`npm test` passing (7 unit + 6 browser); `npm run build` passing; a normal
-four-piece create/restore/export/share flow; desktop and 390px checks;
-keyboard/focus/reduced-motion; zero axe serious/critical findings; offline
-reload and simulated service-worker update; Lighthouse mobile 100/100/100/100.
-Only the QA documentation changed in this verification handoff.
+- JSON import now deeply validates and reconstructs the export rather than
+  casting parsed JSON. Every layout and item must have the expected type,
+  required text, an ISO timestamp, and a unique ID. Link pieces require a
+  complete whitespace-free HTTP(S) address; timers require an integer duration
+  from 1 through 180 minutes. Unknown fields are discarded before IndexedDB
+  persistence.
+- QR/share payloads now use the same layout/item validation before a fresh
+  local ID is assigned or anything is saved.
+- The exact verifier payload (`url: "not a valid URL"`) now reports
+  `Layout 1, item 1 web address must be a complete http or https URL.` and
+  leaves the library unchanged. UI URL validation also replaces raw `URL`
+  constructor copy with a useful recovery message.
+- The service-worker cache version is `capsule-v1.0.2`, ensuring installed
+  clients receive the repaired application shell and its update prompt.
 
-## Shipped
+## Regression coverage
 
-Finished v1 of the local-first PWA for saving and restoring the auxiliary tools
-around a creative session. Users can create named capsules; add, edit, remove,
-and explicitly reorder launch links, MIDI cues, timers, and notes; run a timed
-restore checklist; and mark each stage piece ready. The editor states the
-browser boundary clearly: it launches web links and remembers setup intent but
-does not claim to arrange desktop windows or configure hardware.
+`src/model.test.ts` covers the exact poisoned JSON, accepted/sanitized valid
+records, unsupported kinds, bad protocols, out-of-range timers, malformed and
+date-only timestamps, and poisoned QR/share intake. `tests/app.spec.ts` runs
+the exact import through the file-picker flow on desktop and 390px mobile,
+asserts its field-specific alert, no persisted poisoned capsule, and no page
+error. The offline browser test also asserts the `capsule-v1.0.2-shell` cache.
 
-Data persists in IndexedDB. JSON export/import provides backup and last-write-
-wins merging. Each reasonably sized capsule can become a self-contained share
-URL and printable QR handoff; no backend is involved. The app has empty,
-validation, storage-error, completion, online/offline, and update states.
-
-The paper-cut rehearsal-diorama system is documented in `design.md`. The hero
-was generated specifically for this product, reviewed for artifacts, and ships
-as 22 KB AVIF, 39 KB WebP, and 183 KB indexed PNG. PWA icons are original,
-hand-authored artwork.
-
-## Run and verify
+## Verification run — 2026-08-27 UTC
 
 ```sh
-npm install
+npm ci
 npx playwright install chromium
 npm test
 npm run build
 ```
 
-`npm test` passes 7 model tests and 6 Playwright checks across desktop and a
-390×844 mobile viewport. Browser tests cover creation through completed restore,
-axe serious/critical accessibility rules, and a true offline page reload using
-`context.setOffline(true)`. `npm run build` reproducibly produces `dist/` with
-`index.html` at its root.
+- Clean install: 90 packages; `npm audit` reported 0 vulnerabilities.
+- `npm test`: 10 Vitest model tests and 8 Playwright executions passed
+  (4 browser specs on each Desktop Chrome and 390×844 mobile project).
+  This includes create/restore, axe serious/critical, the poisoned import,
+  and offline reload with persisted service-worker state.
+- `npm run build`: TypeScript check and Vite production build passed;
+  `dist/index.html` is at the deploy root. There is no lint script or
+  distributable consumer package in this static application.
+- Manual production-build Chromium checks at 1440×1000 and 390×844 passed:
+  title/lang, exactly one `h1`, one `main`, image alts, no horizontal overflow,
+  no console/page errors, first Tab reaches the skip link, Enter activates it,
+  Escape closes the dialog, and reduced-motion transition duration is 0.01 ms.
+- Lighthouse mobile on the built app: Performance 100, Accessibility 100,
+  Best Practices 100, SEO 100; FCP 1.1 s, LCP 1.5 s, TBT 0 ms, CLS 0.
+- Production payload: `index-B-v61sIi.js` 53,945 bytes and CSS 17,747 bytes
+  raw (both below the 200 KB/50 KB budgets). Hero AVIF/WebP/PNG are 21,899 /
+  39,880 / 186,469 bytes.
+- Privacy review: source and browser checks found no analytics, beacons,
+  third-party scripts, CDN fonts, or remote data endpoints. Data remains in
+  IndexedDB and the existing privacy/terms pages still describe that behavior.
 
-Additional verification on 2026-08-27:
+## Deployment and live checks
 
-- Factory `verify-url.sh`: HTTP 200; title and `lang` present; exactly one `h1`;
-  main landmark present; zero missing image alts; zero unlabeled buttons; zero
-  console/page errors; measured local load 563 ms.
-- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100,
-  SEO 100.
-- Lighthouse lab metrics: FCP 1.1 s, LCP 1.2 s, CLS 0, total blocking time 0 ms,
-  speed index 1.1 s.
-- Production payload: 52.09 KB JavaScript and 17.75 KB CSS uncompressed
-  (18.78 KB and 4.81 KB gzip), below the 200 KB / 50 KB budgets.
-- Hero image: 22 KB AVIF, 39 KB WebP, 183 KB fallback PNG, all below 300 KB.
-- Manual visual review completed at 1440×1000 and 390×844. Focus states,
-  reduced motion, legal routes, responsive stacking, and touch-size controls
-  are implemented.
-
-Evidence files are in `.factory/evidence/` (`verify.json`, screenshots, and the
-Lighthouse JSON report).
+Before this repair was deployed, the live endpoint correctly returned HTTPS,
+HSTS, `Referrer-Policy: strict-origin-when-cross-origin`, and
+`X-Content-Type-Options: nosniff`, but its application identity was still the
+failed candidate asset `index-hvrRGofZ.js`. The release push must be followed
+by a live hash check against `dist/assets/index-B-v61sIi.js` and a repeat of
+the poisoned-import browser smoke test. The verifier's separate P2 cache-header
+and P3 response-header observations are deployment-layer hardening work, not
+release blockers for this repair; no infrastructure configuration exists in
+this repository to change them.
 
 ## Known boundaries
 
-- Browser security prevents arbitrary desktop window placement and external
-  hardware configuration. This is intentionally a restore checklist, not OS
-  automation or DAW parsing.
-- There is no cloud sync. Clearing site data removes unexported capsules.
-- Self-contained QR handoffs are capped at 2,600 URL characters for dependable
-  scanning. Larger layouts remain portable through JSON export.
-- A launch link can open a destination, but the destination’s availability and
-  privacy behavior are outside this static app.
-
-## Suggested next study
-
-Run the brief’s five-session diary study: record restore time and the number of
-manual placement steps. Add templates only after the study identifies repeated
-piece patterns; do not expand into misleading desktop automation.
+- Browsers cannot arrange arbitrary desktop windows or configure external
+  hardware; Capsule intentionally remains a launch/checklist tool.
+- There is no cloud sync. Users should export JSON before clearing browser
+  storage. QR links are capped at 2,600 characters; large layouts use JSON.

@@ -1,5 +1,5 @@
 /* Session Layout Capsule service worker — local-first shell and runtime cache. */
-const VERSION = 'capsule-v1.0.1';
+const VERSION = 'capsule-v1.0.2';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const PRECACHE = [

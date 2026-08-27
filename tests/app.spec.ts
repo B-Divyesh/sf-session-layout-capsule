@@ -30,9 +30,32 @@ test('has no serious accessibility violations on the empty shelf', async ({ page
   expect(serious).toEqual([]);
 });
 
+test('rejects a poisoned JSON import without persisting it or throwing a page error', async ({ page }) => {
+  const errors: Error[] = [];
+  page.on('pageerror', (error) => errors.push(error));
+  await page.goto('/');
+  const poisoned = JSON.stringify({
+    format: 'session-layout-capsule', version: 1, exportedAt: '2026-08-27T00:00:00.000Z', layouts: [{
+      id: 'invalid-layout', name: 'Poison capsule', description: '', createdAt: '2026-08-27T00:00:00.000Z', updatedAt: '2026-08-27T00:00:00.000Z', items: [{
+        id: 'bad-link', kind: 'link', title: 'Broken link', url: 'not a valid URL', detail: '', createdAt: '2026-08-27T00:00:00.000Z'
+      }]
+    }]
+  });
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toMatch(/Layout 1, item 1.*web address/);
+    await dialog.accept();
+  });
+  await page.getByRole('button', { name: 'Import JSON' }).click();
+  await page.locator('#import-file').setInputFiles({ name: 'poisoned-capsule.json', mimeType: 'application/json', buffer: Buffer.from(poisoned) });
+  await expect(page.getByText('Poison capsule')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Your shelf is quiet' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('reopens the cached shell and local state offline', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await expect.poll(() => page.evaluate(() => caches.keys())).toContain('capsule-v1.0.2-shell');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await context.setOffline(true);
