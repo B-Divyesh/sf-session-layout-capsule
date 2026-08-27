@@ -25,7 +25,7 @@ const itemIcon = (kind: ItemKind): string => ({ link: '↗', midi: '⌁', timer:
 function shell(content: string): void {
   root.innerHTML = `
     <header class="site-header">
-      <button class="brand-button" data-action="home" aria-label="Go to capsule library">
+      <button class="brand-button" data-action="home" aria-label="Session Layout Capsule — go to capsule library">
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
         <span>Session Layout Capsule</span>
       </button>
@@ -123,11 +123,11 @@ function renderLayoutList(): string {
 function newLayoutDialog(): string {
   return `<dialog id="new-dialog" aria-labelledby="new-title">
     <form id="new-form" method="dialog" class="dialog-sheet">
-      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+      <button class="dialog-close" type="button" data-action="cancel-new" aria-label="Close">×</button>
       <p class="eyebrow">Fresh paper</p><h2 id="new-title">Name this capsule</h2>
       <label>Session name<input name="name" required maxlength="60" autocomplete="off" placeholder="Friday rooftop set" /></label>
       <label>What is it for? <span>(optional)</span><textarea name="description" maxlength="180" rows="3" placeholder="The visual and cue setup around the live set"></textarea></label>
-      <div class="dialog-actions"><button class="button secondary" value="cancel">Cancel</button><button class="button primary" value="default" type="submit">Open the workbench</button></div>
+      <div class="dialog-actions"><button class="button secondary" type="button" data-action="cancel-new">Cancel</button><button class="button primary" type="submit">Open the workbench</button></div>
     </form>
   </dialog>`;
 }
@@ -138,6 +138,7 @@ function bindLibrary(): void {
     dialog.showModal();
     window.setTimeout(() => dialog.querySelector<HTMLInputElement>('input')?.focus(), 0);
   }));
+  root.querySelectorAll('[data-action="cancel-new"]').forEach((button) => button.addEventListener('click', () => root.querySelector<HTMLDialogElement>('#new-dialog')?.close()));
   root.querySelector('#new-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
@@ -173,7 +174,7 @@ function editorView(): void {
     <nav class="crumbs" aria-label="Breadcrumb"><button data-action="back">← Capsule shelf</button><span aria-hidden="true">/</span><span>Edit</span></nav>
     <section class="workbench" aria-labelledby="editor-title">
       <div class="editor-heading">
-        <div><p class="eyebrow">Layout workbench</p><h1 id="editor-title">${escapeHtml(layout.name)}</h1><p>${escapeHtml(layout.description || 'Build the small stage around your main project.')}</p></div>
+        <div><p class="eyebrow">Layout workbench</p><h1 id="editor-title">${escapeHtml(layout.name)}</h1><p>${escapeHtml(layout.description || 'Build the small stage around your main project.')}</p><button class="text-button edit-details" data-action="edit-details">Edit name and note</button></div>
         <div class="editor-actions"><span class="save-state" id="save-state">Saved locally</span><button class="button primary" data-action="start-restore" ${layout.items.length ? '' : 'disabled'}>Start restore →</button></div>
       </div>
       <div class="boundary-note"><span aria-hidden="true">✦</span><div><strong>A cue sheet, not a window manager.</strong><p>Capsule can launch web links and remember intent. You still place external apps and panels where you want them.</p></div></div>
@@ -195,7 +196,8 @@ function editorView(): void {
           </form>
         </aside>
       </div>
-    </section>`);
+    </section>
+    <dialog id="details-dialog" aria-labelledby="details-title"><form id="details-form" class="dialog-sheet"><button class="dialog-close" type="button" data-action="cancel-details" aria-label="Close">×</button><p class="eyebrow">Capsule label</p><h2 id="details-title">Edit name and note</h2><label>Session name<input name="name" required maxlength="60" value="${escapeHtml(layout.name)}" /></label><label>What is it for? <span>(optional)</span><textarea name="description" maxlength="180" rows="3">${escapeHtml(layout.description)}</textarea></label><div class="dialog-actions"><button class="button secondary" type="button" data-action="cancel-details">Cancel</button><button class="button primary" type="submit">Save details</button></div></form></dialog>`);
   bindEditor();
 }
 
@@ -218,6 +220,19 @@ function bindEditor(): void {
   root.querySelector('[data-action="back"]')?.addEventListener('click', () => goHome());
   root.querySelector('[data-action="start-restore"]')?.addEventListener('click', () => restoreView());
   root.querySelector('[data-action="cancel-edit"]')?.addEventListener('click', () => { editingItemId = null; editorView(); });
+  root.querySelector('[data-action="edit-details"]')?.addEventListener('click', () => root.querySelector<HTMLDialogElement>('#details-dialog')?.showModal());
+  root.querySelectorAll('[data-action="cancel-details"]').forEach((button) => button.addEventListener('click', () => root.querySelector<HTMLDialogElement>('#details-dialog')?.close()));
+  root.querySelector('#details-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!active) return;
+    const data = new FormData(event.currentTarget as HTMLFormElement);
+    active.name = String(data.get('name') || '').trim();
+    active.description = String(data.get('description') || '').trim();
+    if (!active.name) return;
+    await persistActive();
+    root.querySelector<HTMLDialogElement>('#details-dialog')?.close();
+    editorView(); showNotice('Capsule details saved.');
+  });
   root.querySelectorAll<HTMLInputElement>('input[name="kind"]').forEach((input) => input.addEventListener('change', () => {
     root.querySelector<HTMLElement>('#url-field')!.hidden = input.value !== 'link';
     root.querySelector<HTMLElement>('#duration-field')!.hidden = input.value !== 'timer';
@@ -409,9 +424,10 @@ function bindConnectivity(): void {
 
 async function registerServiceWorker(): Promise<void> {
   if (!('serviceWorker' in navigator)) return;
+  const hadController = Boolean(navigator.serviceWorker.controller);
   const registration = await navigator.serviceWorker.register('/sw.js');
   navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data?.type === 'CAPSULE_UPDATED' && navigator.serviceWorker.controller) document.querySelector<HTMLElement>('#update-toast')?.removeAttribute('hidden');
+    if (event.data?.type === 'CAPSULE_UPDATED' && hadController) document.querySelector<HTMLElement>('#update-toast')?.removeAttribute('hidden');
   });
   registration.addEventListener('updatefound', () => {
     const worker = registration.installing;
