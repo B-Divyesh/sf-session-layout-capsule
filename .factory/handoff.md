@@ -1,140 +1,74 @@
-# Repair 3 handoff — Session Layout Capsule
+# Review 2 handoff — Save and restore creative session layouts
 
 ## Release status
 
-**PASS — all eight Review 1 findings are resolved and all public claims are tested.**
+**FAIL — 2 findings remain: 1 P1 and 1 P2. Zero public claims are untested.**
 
 - Live URL: <https://session-layout-capsule.sociobot.in>
 - Demo URL: <https://session-layout-capsule.sociobot.in/demo>
-- Implementation SHA: `776fc98665a4758103ffac2d02384193a1662747`
-- Final deployment: `886ca03c-6f0c-4b92-95b9-64f4dcc5faf6`
-- Documentation/evidence SHA: `6eaae33a6058d12346cdef5d0ebf394955e1a583`
-- Review date: 2026-09-06 UTC
+- Implementation candidate: `776fc98665a4758103ffac2d02384193a1662747`
+- Documentation HEAD reviewed: `1dbac63c5703d5f33115695c857fa560bae88563`
+- Review report: [.factory/review-2.md](review-2.md)
 
-The implementation was pushed and deployed. All 22 public files in the final
-build match the live HTTPS bytes. Later documentation-only commits do not
-require a new product image.
+No product code was changed. The 22 deployable files from the fresh candidate
+build match the live site byte for byte.
 
-## Product outcome
+## Findings to repair
 
-The first screen now states the job, audience, and first action without
-scrolling. A home producer or live visualist can save links, MIDI cues, timers,
-and notes, then restore them as a checklist. The app does not claim to position
-desktop windows or control hardware.
+1. **P1 — unreliable `free-core` claim command.** Its first exact run from the
+   clean checkout passed on phone but failed on desktop. The test queried the
+   restore checkboxes before the client-side route finished, received zero,
+   skipped all checks, and timed out waiting for **Layout restored**. Wait for
+   the restore URL or four visible checkboxes before iterating.
+2. **P2 — static-page attribution touch target.** At 390 px, **Built by Param
+   Factory** is about 143 × 15 CSS pixels on privacy, terms, offline, and 404
+   pages. Give every static footer link a 44 px touch area.
 
-The one-click demo opens a populated **Rooftop visuals rehearsal** layout. It
-contains a visual link, a Launchpad MIDI cue, a two-minute projector timer, and
-a placement note. The persistent banner says **Demo — sample data, nothing is
-saved** and provides **Reset demo** and **Start for real**. Demo data uses the
-IndexedDB namespace `demo:session-layout-capsule`; normal data uses
-`session-layout-capsule`. Resetting or leaving the demo clears only demo data.
+The first issue is a claim-proof race, not a failed live workflow. An unchanged
+rerun passed in both projects, 50 additional desktop diagnostic runs passed,
+and an independent live run completed all four checks without login or
+payment. The strict claims contract still makes the initial required-command
+failure release-blocking.
 
-## Review 1 disposition
+## What passed
 
-1. **Demo and isolation:** resolved with `/demo`, realistic seeded data,
-   separate storage, persistent status/actions, and `.factory/demo.md`.
-2. **Missing claim contract:** resolved with `.factory/claims.json` and exactly
-   one outcome-based `@claim` test for each of 12 public claims.
-3. **Routes and 404:** resolved with deep-linked edit/restore routes, History
-   API navigation, route titles, focus and live announcements, plus a designed
-   HTTP 404 response.
-4. **First screen and copy:** resolved with plain job/audience/action copy,
-   three facts, the live product, three steps, the browser boundary, and
-   `.factory/copy-audit.md`.
-5. **Metadata and shared structure:** resolved on app, legal, offline, and 404
-   pages with canonical/social metadata, product artwork, navigation, footer,
-   build id, contact link, and a complete sitemap.
-6. **Touch targets:** resolved for footer and legal-page links at 44 px or more.
-7. **Malformed JSON:** resolved with a plain recovery message and no write.
-8. **Manifest MIME:** resolved; live response is
-   `application/manifest+json`.
+- Fresh `npm ci`: 170 packages, zero audit vulnerabilities.
+- `npm test`: 23 unit/deployment tests and 60 browser executions passed.
+- `npm run lint` and `npm run build` passed; `dist/index.html` was produced.
+- Eleven claim commands passed on their first exact run. All 12 claims have
+  exactly one tagged test, so the untested claim count is zero.
+- Fresh desktop and 390 px phone profiles showed the job, audience, sample
+  action, result, and three facts before scrolling.
+- The populated four-item sample, persistent demo label, reset, real-data
+  isolation, 4/4 restore output, keyboard use, route focus, reduced motion,
+  invalid inputs, timer bounds, storage recovery, and same-origin requests
+  were exercised.
+- Offline reload retained the populated sample. Chromium reported no
+  installability errors.
+- Root, demo, privacy, terms, offline, and designed 404 routes had the correct
+  titles and structure. Internal links passed. The deliberate unknown path
+  returned HTTP 404 as expected.
+- Live axe scans found no serious or critical issues on all six routes in both
+  viewports. The worker URL verifier found no load or semantic errors.
+- Live mobile Lighthouse scored 100 in Performance, Accessibility, Best
+  Practices, and SEO. FCP was 0.9 s, LCP 1.2 s, TBT 0 ms, and CLS 0.
 
-Earlier semantic-import, unsafe-URL, cache, CSP, and Permissions-Policy fixes
-remain in place. Regression checks cover poisoned JSON and explicit `ftp:`,
-`mailto:`, `file:`, and `javascript:` input.
-
-## Claims and quality gates
-
-From a clean checkout of implementation SHA `776fc98`:
-
-| Check | Result |
-| --- | --- |
-| Every command in `.factory/claims.json` | PASS — 12/12 claims; 24 desktop/phone browser executions |
-| `npm test` | PASS — 23 Vitest tests and 60 Playwright executions |
-| `npm run lint` | PASS — zero warnings |
-| `npm run build` | PASS — `dist/index.html` produced |
-| Playwright axe scans | PASS — no serious/critical issues on app, demo, legal, offline, or 404 pages |
-| `verify-url.sh` | PASS — 638 ms load, no console errors, one h1/main/lang/alt/button checks pass |
-
-The browser suite covers normal, invalid, boundary, and recovery paths;
-keyboard and phone use; dialog focus; reduced motion; storage persistence;
-demo isolation; privacy requests; offline reload; PWA installability; route
-history and titles; legal pages; and the designed 404.
-
-Build budgets: JavaScript is 60,606 bytes raw / 21.08 kB gzip; CSS is 20,490
-bytes raw / 5.35 kB gzip. The largest responsive hero image is 186,469 bytes.
-
-Live mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
-100, SEO 100; FCP 0.9 s, LCP 1.2 s, TBT 0 ms, CLS 0.
-
-## Live verification
-
-- Fresh desktop and 390 px phone contexts showed the job, audience, sample
-  action, and facts before scrolling with no horizontal overflow.
-- The live demo displayed all four sample types, reordered them, completed the
-  restore checklist to **4 of 4 ready**, and retained its demo label.
-- A real-data marker survived demo entry, edits, reset, and exit; sample data
-  never appeared in the real namespace.
-- The complete demo flow sent requests only to the product origin.
-- Root, demo, edit, restore, privacy, terms, offline, and 404 route titles were
-  checked. An unknown path returned HTTP 404 with the designed page.
-- A warmed `/demo` reloaded offline with its populated sample. The activated
-  service worker used `capsule-v1.1.1-shell`.
-- Live response headers include CSP, Permissions-Policy, HSTS, `nosniff`, and
-  strict-origin referrer policy. Hashed assets are immutable.
-
-## Run and verify
+## Run and verify after repair
 
 ```sh
 npm ci
+npx playwright install chromium
 npm test
 npm run lint
 npm run build
-npm run preview
 ```
 
-Run an individual declared claim using its exact command in
-`.factory/claims.json`. The catalog description is in
-`.factory/catalog-description.txt` and is copied to the worker evidence path.
+Run every exact command in `.factory/claims.json` from a clean checkout. Repeat
+`npm run test:e2e -- --grep @claim:free-core` enough times to prove the route
+wait is stable. Measure every visible link and button on each static page at
+390 px. Then repeat the live desktop, phone, offline, accessibility, route, and
+candidate-byte checks.
 
-## Scope and remaining limits
-
-There is no backend, shared database, account, payment, analytics, AI call, or
-third-party runtime script. Backend tenant, restart, health, 429, paid
-entitlement, CLI, library, and native-app checks do not apply. The researched
-brief says the product is free, so no billing offer metadata is required.
-
-The only intentional limit is the browser boundary: external links still need
-the user to place their application windows and connect their own hardware.
-This is stated in the product. No unresolved repair finding remains.
-
-The requested `/work/.evidence/qa-result.json` was not present in this worker.
-The repository's complete verification and review history was inspected, and
-the new evidence is stored under `.factory/evidence/`.
-
-## Verification 4 update
-
-Independent verification on 2026-09-06 UTC is **PASS** with zero findings and
-zero untested claims. The implementation reviewed was `776fc98`; the reporting
-HEAD was `93f9b22`, whose post-candidate changes are evidence and handoff only.
-
-From a fresh clone, `npm ci`, `npm test` (23 unit and 60 browser executions),
-`npm run lint`, `npm run build`, and every exact command declared in
-`.factory/claims.json` passed. The live build matched all 22 deployed public
-artifacts from the fresh candidate build. Fresh desktop and 390 px phone
-profiles verified the visible job/audience/sample action, populated isolated
-demo, persistent sample label, reset, real-data isolation, restore workflow,
-offline reload, legal/404 routes, headers, and internal links.
-
-See `.factory/verification-4.md` for the complete evidence and the disposition
-of every earlier finding. Worker evidence is copied to `/work/.evidence/`.
+Evidence is under `/work/.evidence/review-2/`. The product has no backend,
+shared database, account, payment, analytics, AI call, third-party runtime
+script, CLI, library package, or native desktop artifact.
