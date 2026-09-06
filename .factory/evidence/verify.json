@@ -1,14 +1,14 @@
 {
   "url": "https://session-layout-capsule.sociobot.in",
-  "loadMs": 909,
+  "loadMs": 638,
   "errors": [],
   "a11y": {
-    "title": "Session Layout Capsule — reset your creative stage",
+    "title": "Session Layout Capsule — Save and restore layouts",
     "lang": "en",
     "h1": 1,
     "main": true,
     "imgsMissingAlt": 0,
     "buttonsUnlabeled": 0,
-    "textLength": 723
+    "textLength": 1334
   }
 }
