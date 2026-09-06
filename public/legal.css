@@ -26,6 +26,7 @@ h1, h2 { font-family: Georgia, serif; letter-spacing: -.025em; line-height: 1.08
 h1 { max-width: 15ch; margin: 0 0 24px; font-size: clamp(2.5rem,8vw,4.5rem); }
 h2 { margin: 42px 0 12px; font-size: 1.6rem; }
 p, li { max-width: 68ch; }
+main a:not(.action) { min-height: 44px; display: inline-flex; align-items: center; }
 footer { min-height: 88px; padding: 20px clamp(20px,5vw,72px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; border-top: 1px solid rgba(23,36,31,.24); color: var(--soft); font-size: .82rem; }
 footer p { margin: 0; }
 .status-page { text-align: center; }
