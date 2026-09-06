@@ -121,3 +121,20 @@ This is stated in the product. No unresolved repair finding remains.
 The requested `/work/.evidence/qa-result.json` was not present in this worker.
 The repository's complete verification and review history was inspected, and
 the new evidence is stored under `.factory/evidence/`.
+
+## Verification 4 update
+
+Independent verification on 2026-09-06 UTC is **PASS** with zero findings and
+zero untested claims. The implementation reviewed was `776fc98`; the reporting
+HEAD was `93f9b22`, whose post-candidate changes are evidence and handoff only.
+
+From a fresh clone, `npm ci`, `npm test` (23 unit and 60 browser executions),
+`npm run lint`, `npm run build`, and every exact command declared in
+`.factory/claims.json` passed. The live build matched all 22 deployed public
+artifacts from the fresh candidate build. Fresh desktop and 390 px phone
+profiles verified the visible job/audience/sample action, populated isolated
+demo, persistent sample label, reset, real-data isolation, restore workflow,
+offline reload, legal/404 routes, headers, and internal links.
+
+See `.factory/verification-4.md` for the complete evidence and the disposition
+of every earlier finding. Worker evidence is copied to `/work/.evidence/`.
