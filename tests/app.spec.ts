@@ -43,6 +43,7 @@ test('keeps demo changes separate and resets them before real use', async ({ pag
   await page.goto('/demo');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await page.getByRole('button', { name: 'Edit Rooftop visuals rehearsal' }).click();
+  await expect(page).toHaveURL('/demo/layout/demo-rooftop-visuals/edit');
   await page.getByRole('button', { name: 'Edit name and note' }).click();
   await page.getByLabel('Session name').fill('Changed demo layout');
   await page.getByRole('button', { name: 'Save details' }).click();
@@ -138,5 +139,23 @@ for (const path of ['/', '/demo', '/privacy/', '/terms/', '/offline.html', '/404
     await page.goto(path);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''))).toEqual([]);
+  });
+}
+
+for (const path of ['/privacy/', '/terms/', '/offline.html', '/404.html']) {
+  test(`keeps every visible static-page link and button touch sized at ${path}`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(path);
+    const targets = page.locator('a, button').filter({ visible: true });
+    const count = await targets.count();
+    expect(count).toBeGreaterThan(0);
+    for (let index = 0; index < count; index += 1) {
+      const target = targets.nth(index);
+      const label = (await target.getAttribute('aria-label')) || (await target.textContent())?.trim() || `target ${index + 1}`;
+      const box = await target.boundingBox();
+      expect(box, `${path} ${label} has a rendered box`).not.toBeNull();
+      expect(box!.width, `${path} ${label} width`).toBeGreaterThanOrEqual(44);
+      expect(box!.height, `${path} ${label} height`).toBeGreaterThanOrEqual(44);
+    }
   });
 }

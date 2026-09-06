@@ -12,12 +12,21 @@ async function createRealLayout(page: Page, name: string): Promise<void> {
 async function openSampleEditor(page: Page): Promise<void> {
   await page.goto('/demo');
   await page.getByRole('button', { name: 'Edit Rooftop visuals rehearsal' }).click();
+  await expect(page).toHaveURL('/demo/layout/demo-rooftop-visuals/edit');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rooftop visuals rehearsal');
+}
+
+async function openSampleRestore(page: Page): Promise<void> {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Restore', exact: true }).click();
+  await expect(page).toHaveURL('/demo/layout/demo-rooftop-visuals/restore');
+  await expect(page.getByRole('checkbox')).toHaveCount(4);
 }
 
 async function completeSampleRestore(page: Page): Promise<void> {
-  await page.goto('/demo');
-  await page.getByRole('button', { name: 'Restore', exact: true }).click();
-  for (const checkbox of await page.getByRole('checkbox').all()) await checkbox.check();
+  await openSampleRestore(page);
+  const checkboxes = page.getByRole('checkbox');
+  for (let index = 0; index < 4; index += 1) await checkboxes.nth(index).check();
 }
 
 async function newTouchContext(browser: Browser): Promise<BrowserContext> {
@@ -47,8 +56,7 @@ test('@claim:layout-items Saves and reorders all four layout item types', async 
 });
 
 test('@claim:restore-progress Tracks restore progress against a two-minute target', async ({ page }) => {
-  await page.goto('/demo');
-  await page.getByRole('button', { name: 'Restore', exact: true }).click();
+  await openSampleRestore(page);
   await expect(page.getByText('Target: under 02:00')).toBeVisible();
   await page.getByRole('button', { name: 'Start 2 min timer' }).click();
   await expect(page.getByRole('button', { name: /01:5[89]/ })).toBeVisible();
@@ -193,6 +201,7 @@ test('@claim:demo-isolation Keeps sample edits out of real layouts and resets th
   await page.goto('/demo');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await page.getByRole('button', { name: 'Edit Rooftop visuals rehearsal' }).click();
+  await expect(page).toHaveURL('/demo/layout/demo-rooftop-visuals/edit');
   await page.getByRole('button', { name: 'Edit name and note' }).click();
   await page.getByLabel('Session name').fill('Temporary sample edit');
   await page.getByRole('button', { name: 'Save details' }).click();
