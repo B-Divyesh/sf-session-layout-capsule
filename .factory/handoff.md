@@ -1,32 +1,50 @@
-# Verification handoff — Session Layout Capsule
+# Review 1 handoff — Session Layout Capsule
 
 ## Release status
 
-**PASS — candidate `a29d981c21d9f578e0b8e82e5439e99bb0f9cd23` is accepted and
-the live site at <https://session-layout-capsule.sociobot.in> matches the fresh
-production build.**
+**FAIL — 8 findings and 10 untested public claims remain.**
 
-## What was independently verified
+Review report: [review-1.md](review-1.md)
 
-- Clean `npm ci`, installed matching Playwright Chromium, `npm test` (21 unit
-  tests plus 16 desktop/390px browser executions), `npm run lint`, and exact
-  `npm run build` all pass.
-- The real job flow works: named local layout; launch link, MIDI cue, timer,
-  and note; reorder; restore checklist; JSON export; printable/copyable QR
-  handoff; persistence; invalid import recovery; and the explicit
-  browser/window-placement boundary.
-- Unsafe `ftp:`, `mailto:`, `file:`, and `javascript:` launch targets are
-  rejected. Timer boundaries are covered at 1 and 180 minutes; 181 is blocked.
-- Live desktop and 390px keyboard/visual-focus, reduced-motion, axe,
-  console/page-error, no-overflow, request-origin, offline-reload,
-  service-worker-update, cache/header, and deployment-byte identity checks
-  pass. Mobile Lighthouse 13.4 scored 100 Performance, Accessibility, Best
-  Practices, and SEO (FCP 0.9 s, LCP 1.1 s, TBT 0 ms, CLS 0).
+- Implementation reviewed: `2acc60473d3f3932224a49ed25f98d27f53116db`
+- Documentation reviewed: `83b6050a2a1572f49fdafecf7eb5097f0bb154db`
+- Live URL: <https://session-layout-capsule.sociobot.in>
+- Live bytes match all 19 public files from the fresh build.
+- Product code was not changed by this review.
 
-## How to verify
+## What passed
+
+- `npm install`, the documented Chromium install, `npm test` (21 unit and 16
+  browser runs), `npm run lint`, and `npm run build` pass from a clean checkout.
+- A realistic phone workflow passed for all four item types, persistence, JSON
+  export, QR/link handoff, restore, deletion, invalid URL, timer maximum,
+  storage recovery, offline reload, reduced motion, and same-origin privacy.
+- Axe found zero violations on all sampled live routes. `verify-url.sh` passed.
+- Lighthouse scored 100 in Performance, Accessibility, Best Practices, and
+  SEO. FCP and LCP were 1.1 s, TBT was 0 ms, and CLS was 0.
+- Earlier import validation, unsafe URL, cache, and response-header findings are
+  fixed. The manifest MIME observation remains open.
+
+## What remains
+
+1. Add a one-click, populated demo with separate storage, persistent demo
+   label, reset, real-mode exit, and `.factory/demo.md`.
+2. Add `.factory/claims.json` and one `@claim` test for each of the 10 public
+   claims listed in the review.
+3. Add real routes, route titles/history/focus announcements, and a designed
+   HTTP 404.
+4. Rewrite and complete the first screen and landing-page order under the
+   plain-words contract; add `.factory/copy-audit.md`.
+5. Add required metadata, header navigation, consistent legal-page skeleton,
+   footer attribution/build id, and complete sitemap.
+6. Increase footer link hit areas to at least 44×44 CSS px.
+7. Replace the raw malformed-JSON parser alert with a plain recovery message.
+8. Serve the web manifest as `application/manifest+json`.
+
+## Verify after repair
 
 ```sh
-npm ci
+npm install
 npx playwright install chromium
 npm test
 npm run lint
@@ -34,17 +52,7 @@ npm run build
 npm run preview
 ```
 
-See [verification-3.md](verification-3.md) for exact evidence, tested URL and
-commit, byte-identity result, performance budgets, and the complete defect
-assessment.
-
-## Known boundaries / non-blocking observation
-
-- This deliberately cannot arrange external desktop windows or configure MIDI
-  hardware; it launches/checks the web-session setup and says so in restore.
-- Data remains in browser IndexedDB. Users should export JSON before clearing
-  site data; QR links carry their embedded layout data and should be shared
-  intentionally.
-- The host serves the manifest as `application/octet-stream`; Chromium still
-  installs it successfully. `application/manifest+json` would improve MIME
-  interoperability but is not a release blocker.
+Then run every claim command from the isolated demo in fresh contexts and
+repeat live phone, desktop, offline, update, accessibility, route, link,
+header, and byte-identity checks. Do not declare PASS until both finding and
+untested-claim counts are zero.
