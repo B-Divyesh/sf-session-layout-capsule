@@ -1,4 +1,4 @@
-# Verification 5 handoff — Save and restore creative session layouts
+# Review 3 handoff — Save and restore creative session layouts
 
 ## Status
 
@@ -6,14 +6,15 @@
 
 - Live: <https://session-layout-capsule.sociobot.in>
 - Demo: <https://session-layout-capsule.sociobot.in/demo>
-- Implementation verified: `1858cb29d2727147ef091f309d070663839e8152`
-- Documentation verified: `fe8499d2d76a8dabcbae73849c716c7d9ccd4edd`
+- Implementation reviewed: `1858cb29d2727147ef091f309d070663839e8152`
+- Documentation reviewed: `0b125ced5e29f8ca81f3e831f24e7db252960975`
 
 ## What was verified
 
-- Clean install, lint, full test suite, build, and every command in
-  `.factory/claims.json` passed. The 12 claim commands each passed in desktop
-  and 390 px phone projects.
+- A detached clean checkout passed `npm ci`, lint, the 23-unit/68-browser test
+  suite, and the production build. Every exact command in `.factory/claims.json`
+  passed on its first independent run; all 12 passed in desktop and 390 px
+  phone projects.
 - Fresh desktop and phone browsers show the job, audience, sample action, and
   three product facts before scrolling. The sample is populated, labelled,
   resettable, and isolated from normal layouts.
@@ -21,11 +22,12 @@
   keyboard, touch, invalid input, boundary values, recovery, offline reload,
   update readiness, routes, legal pages, designed 404, privacy, and headers
   were covered by the clean suite and live checks.
-- Live axe scans found no serious or critical issues on all required routes in
-  both profiles. Static phone controls meet the 44 px minimum.
-- A fresh build matches all 22 live deployable files byte for byte. Live mobile
-  Lighthouse scored 100 for performance, accessibility, best practices, and
-  SEO (FCP 0.9 s, LCP 1.1 s, TBT 0 ms, CLS 0).
+- Fresh live axe scans found no serious or critical issues on all required
+  routes in both profiles. All scanned visible phone links and buttons meet the
+  44 px minimum.
+- A fresh build matches the 22 publicly served product files byte for byte.
+  Fresh live mobile Lighthouse scored 100 for performance, accessibility,
+  best practices, and SEO (FCP 1.0 s, LCP 1.3 s, TBT 0 ms, CLS 0).
 
 ## How to verify
 
@@ -38,8 +40,8 @@ npm run build
 ```
 
 Run every exact command listed in `.factory/claims.json`. Open `/demo` for the
-isolated four-item sample. Evidence and the complete independent report are in
-[verification-5.md](verification-5.md).
+isolated four-item sample. The complete strict review is in
+[review-3.md](review-3.md).
 
 ## Known gaps
 
