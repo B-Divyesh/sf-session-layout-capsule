@@ -1,9 +1,9 @@
 {
   "name": "Session Layout Capsule",
   "short_name": "Capsule",
-  "description": "Reset the side tools around a creative session from a local cue sheet.",
+  "description": "Save and restore the links, MIDI cues, timers, and notes around a creative session.",
   "id": "/",
-  "start_url": "/?source=pwa-v1",
+  "start_url": "/?source=pwa-v1.1",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

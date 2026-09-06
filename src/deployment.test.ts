@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 
 type StaticWebAppConfig = {
   globalHeaders: Record<string, string>;
-  routes: Array<{ route: string; headers?: Record<string, string> }>;
+  routes: Array<{ route: string; rewrite?: string; headers?: Record<string, string> }>;
+  mimeTypes: Record<string, string>;
+  responseOverrides: Record<string, { rewrite: string }>;
 };
 
 describe('static deployment policy', () => {
@@ -23,6 +25,18 @@ describe('static deployment policy', () => {
     expect(policy).toContain("default-src 'self'");
     expect(policy).toContain("img-src 'self' data:");
     expect(policy).toContain("script-src 'self'");
+  });
+
+  it('serves the manifest with its registered media type', () => {
+    expect(loadConfig().mimeTypes['.webmanifest']).toBe('application/manifest+json');
+  });
+
+  it('keeps app deep links while unknown paths use the designed 404 page', () => {
+    const config = loadConfig();
+    expect(config.routes.find((route) => route.route === '/demo')?.rewrite).toBe('/index.html');
+    expect(config.routes.find((route) => route.route === '/demo/layout/*')?.rewrite).toBe('/index.html');
+    expect(config.routes.find((route) => route.route === '/layout/*')?.rewrite).toBe('/index.html');
+    expect(config.responseOverrides['404'].rewrite).toBe('/404.html');
   });
 });
 

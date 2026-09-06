@@ -1,11 +1,12 @@
 /* Session Layout Capsule service worker — local-first shell and runtime cache. */
-const VERSION = 'capsule-v1.0.3';
+const VERSION = 'capsule-v1.1.0';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 const PRECACHE = [
-  '/', '/index.html', '/offline.html', '/manifest.webmanifest',
+  '/', '/index.html', '/demo', '/404.html', '/offline.html', '/manifest.webmanifest',
   '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png',
-  '/assets/session-diorama.avif', '/assets/session-diorama.webp', '/assets/session-diorama.png',
+  '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png',
+  '/assets/session-diorama.avif', '/assets/session-diorama.webp', '/assets/session-diorama.png', '/assets/social-card.png',
   '/privacy/', '/terms/', '/legal.css'
 ];
 

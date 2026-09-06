@@ -1,54 +1,57 @@
 # Session Layout Capsule
 
-Session Layout Capsule is an offline-first cue sheet for home producers and
-live visualists. It saves the browser links, MIDI settings, setup timers, and
-notes that sit around a main creative project, then walks through them in order
-when it is time to restore the session.
+Save and restore the side tools around a creative project. Session Layout
+Capsule is for home producers and live visualists who rebuild the same setup.
 
-It is intentionally not a desktop window manager: browsers cannot reliably
-place external application windows or configure hardware. Capsule preserves
-the setup’s intent, launches web tools, and makes the remaining placement work
-visible and checkable.
+The app saves links, MIDI cues, timers, and notes in an ordered restore
+checklist. It does not move desktop windows or configure external hardware.
 
-Live: <https://session-layout-capsule.sociobot.in>
+- Live app: <https://session-layout-capsule.sociobot.in>
+- Isolated sample: <https://session-layout-capsule.sociobot.in/demo>
 
 ## What it includes
 
-- Named, reorderable local layouts with launch links, MIDI cues, timers, and notes
-- A timed restore checklist with explicit progress and a two-minute target
-- Printable QR handoffs that carry the layout data without a cloud service
-- Versioned JSON export/import for backups and data ownership
-- IndexedDB persistence and an installable service-worker-backed PWA
-- Purpose-built offline, empty, validation, and storage-error states
-- Responsive keyboard/touch UI tested at a 390px viewport
-- Static privacy and terms pages
+- Local layouts with reorderable links, MIDI cues, timers, and notes.
+- A restore checklist with progress and a two-minute target.
+- Printable QR handoffs and copied handoff links.
+- Versioned JSON export and import for backups.
+- IndexedDB persistence across reloads and tabs.
+- An installable PWA that works offline after the first visit.
+- Clear empty, invalid-input, malformed-file, and storage-error states.
+- Keyboard and touch support at a 390 px viewport.
+- A free core workflow with no account or payment.
 
-## Develop
+The demo has its own IndexedDB database. Resetting or leaving the demo deletes
+sample changes and does not change real layouts. See [.factory/demo.md](.factory/demo.md).
 
-Requires Node.js 20 or newer.
+## Run locally
+
+Use Node.js 20 or newer.
 
 ```sh
 npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite. No environment variables or external
-services are required at runtime.
+No environment variables or external services are required.
 
 ## Test and build
 
-Install Playwright’s browser once, then run the complete unit, browser,
-accessibility, mobile, and offline suite:
+Playwright 1.58.2 is pinned to the browser available in the worker image.
 
 ```sh
+npm install
 npx playwright install chromium
 npm test
 npm run lint
 npm run build
 ```
 
-The production command is exactly `npm run build`. It writes the static site
-to `dist/`, with `dist/index.html` at the deploy root. Preview it with:
+Every public product claim has one browser test in
+[.factory/claims.json](.factory/claims.json). Run each listed command from a
+clean checkout. The production build writes `dist/index.html`.
+
+Preview the production build with:
 
 ```sh
 npm run preview
@@ -56,20 +59,21 @@ npm run preview
 
 ## Privacy and data ownership
 
-There are no accounts, analytics, third-party fonts, runtime CDNs, or remote
-data stores. Layouts stay in browser IndexedDB. Export JSON for a durable
-backup before clearing browser data. A QR or copied handoff URL contains the
-layout itself, so only share it with intended recipients.
+Normal use sends requests only to this site. There are no accounts, analytics,
+third-party fonts, runtime CDNs, or remote data stores. Layouts use browser
+IndexedDB. Export JSON before clearing browser data. A QR code or handoff link
+contains the layout, so share it only with intended recipients.
 
-See [`public/privacy/index.html`](public/privacy/index.html) and
-[`public/terms/index.html`](public/terms/index.html).
+See [Privacy](public/privacy/index.html) and [Terms](public/terms/index.html).
 
-## Product and visual documentation
+## Product documents
 
 - [Research brief](.factory/brief.json)
-- [Paper-cut visual system and asset provenance](.factory/design.md)
-- [Build handoff and verification](.factory/handoff.md)
+- [Visual system and asset provenance](.factory/design.md)
+- [Demo sandbox](.factory/demo.md)
+- [Public claim registry](.factory/claims.json)
+- [Build handoff](.factory/handoff.md)
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

@@ -87,4 +87,6 @@ Asset provenance: generated specifically for this product with the factory
 Azure OpenAI image deployment (`factory-image`) on 2026-08-27. Generated output
 is product-original and disclosed in the footer. Icon assets are hand-authored
 SVG by the product builder on the same date. Source prompt metadata lives beside
-the retained image candidate in `assets/src/`.
+the retained image candidate in `assets/src/`. The 1200×630 social card added on
+2026-09-06 is a center crop of that retained image. The 180px Apple touch icon
+is a resized export of the same hand-authored product icon.

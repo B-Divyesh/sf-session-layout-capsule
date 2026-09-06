@@ -1,7 +1,11 @@
 {
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,js,png,jpg,svg,webp,ico,woff2,json,txt,xml,wasm}"]
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html"
+    }
+  },
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json"
   },
   "globalHeaders": {
     "Cache-Control": "public, max-age=30, must-revalidate",
@@ -11,6 +15,18 @@
     "Permissions-Policy": "camera=(), geolocation=(), microphone=(), payment=(), usb=()"
   },
   "routes": [
+    {
+      "route": "/demo",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/demo/layout/*",
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/layout/*",
+      "rewrite": "/index.html"
+    },
     {
       "route": "/assets/index-*.{js,css}",
       "headers": {

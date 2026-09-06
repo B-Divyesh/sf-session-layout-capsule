@@ -1,11 +1,15 @@
 import type { Layout } from './types';
 
-const DB_NAME = 'session-layout-capsule';
 const STORE = 'layouts';
+let databaseName = 'session-layout-capsule';
+
+export function useDemoStorage(enabled: boolean): void {
+  databaseName = enabled ? 'demo:session-layout-capsule' : 'session-layout-capsule';
+}
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(databaseName, 1);
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
@@ -20,9 +24,12 @@ async function withStore<T>(mode: IDBTransactionMode, operation: (store: IDBObje
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE, mode);
     const request = operation(transaction.objectStore(STORE));
-    request.onsuccess = () => resolve(request.result);
+    let result: T;
+    request.onsuccess = () => { result = request.result; };
     request.onerror = () => reject(new Error('The change could not be saved locally. Try again.'));
-    transaction.oncomplete = () => db.close();
+    transaction.oncomplete = () => { db.close(); resolve(result); };
+    transaction.onerror = () => { db.close(); reject(new Error('The change could not be saved locally. Try again.')); };
+    transaction.onabort = () => { db.close(); reject(new Error('The change could not be saved locally. Try again.')); };
   });
 }
 
@@ -33,6 +40,17 @@ export const listLayouts = async (): Promise<Layout[]> => {
 
 export const saveLayout = (layout: Layout): Promise<IDBValidKey> => withStore('readwrite', (store) => store.put(layout));
 export const deleteLayout = (id: string): Promise<undefined> => withStore('readwrite', (store) => store.delete(id));
+
+export async function clearLayouts(): Promise<void> {
+  const db = await openDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    transaction.objectStore(STORE).clear();
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(new Error('The saved layouts could not be cleared. Try again.'));
+  });
+  db.close();
+}
 
 export async function replaceLayouts(layouts: Layout[]): Promise<void> {
   const db = await openDb();
