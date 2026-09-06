@@ -8,7 +8,7 @@
 - Demo URL: <https://session-layout-capsule.sociobot.in/demo>
 - Implementation SHA: `776fc98665a4758103ffac2d02384193a1662747`
 - Final deployment: `886ca03c-6f0c-4b92-95b9-64f4dcc5faf6`
-- Documentation/evidence SHA: recorded in the report-only commit after this handoff
+- Documentation/evidence SHA: `6eaae33a6058d12346cdef5d0ebf394955e1a583`
 - Review date: 2026-09-06 UTC
 
 The implementation was pushed and deployed. All 22 public files in the final
