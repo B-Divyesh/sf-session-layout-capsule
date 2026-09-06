@@ -432,7 +432,7 @@ function bindRestore(): void {
   root.querySelectorAll<HTMLInputElement>('[data-action="complete"]').forEach((box) => box.addEventListener('change', () => {
     if (box.checked) completed.add(box.dataset.id!);
     else completed.delete(box.dataset.id!);
-    restoreView();
+    window.setTimeout(() => restoreView(), 0);
   }));
   root.querySelectorAll<HTMLElement>('[data-launch-id]').forEach((link) => link.addEventListener('click', () => showNotice('Link opened. Place its window, then mark it ready.')));
   root.querySelectorAll<HTMLElement>('[data-action="timer"]').forEach((button) => button.addEventListener('click', () => {
